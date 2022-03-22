@@ -9,13 +9,12 @@ package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
-import edu.wpi.first.wpilibj.controller.PIDController;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -26,7 +25,7 @@ public class Robot extends TimedRobot {
 
   private final WPI_TalonSRX m_bottomRightDrive = new WPI_TalonSRX(1);
   private final WPI_TalonSRX m_topRightDrive = new WPI_TalonSRX(2);
-  private final SpeedControllerGroup m_rightDriveGroup = new SpeedControllerGroup(m_bottomRightDrive, m_topRightDrive);
+  private final MotorControllerGroup m_rightDriveGroup = new MotorControllerGroup(m_bottomRightDrive, m_topRightDrive);
 
   private final WPI_TalonSRX m_kicker = new WPI_TalonSRX(3);
   private final AnalogPotentiometer m_potentiometer = new AnalogPotentiometer(0, 72);
@@ -35,14 +34,14 @@ public class Robot extends TimedRobot {
 
   private final WPI_TalonSRX m_bottomLeftDrive = new WPI_TalonSRX(4);
   private final WPI_TalonSRX m_topLeftDrive = new WPI_TalonSRX(5);
-  private final SpeedControllerGroup m_leftDriveGroup = new SpeedControllerGroup(m_bottomLeftDrive, m_topLeftDrive);
+  private final MotorControllerGroup m_leftDriveGroup = new MotorControllerGroup(m_bottomLeftDrive, m_topLeftDrive);
 
   private final WPI_TalonSRX m_topClimber = new WPI_TalonSRX(6);
   private final WPI_TalonSRX m_bottomClimber = new WPI_TalonSRX(7);
-  private final SpeedControllerGroup m_climberGroup = new SpeedControllerGroup(m_topClimber, m_bottomClimber);
+  private final MotorControllerGroup m_climberGroup = new MotorControllerGroup(m_topClimber, m_bottomClimber);
 
   private final DifferentialDrive  m_robotDrive = new DifferentialDrive(m_leftDriveGroup, m_rightDriveGroup);
-  private final Joystick m_stick = new Joystick(0);
+  private final XboxController m_stick = new XboxController(0);
 
   @Override
   public void teleopInit() {
@@ -57,13 +56,13 @@ public class Robot extends TimedRobot {
     // Drive with arcade drive.
     // That means that the Y axis drives forward
     // and backward, and the X turns left and right.
-    m_robotDrive.arcadeDrive(-m_stick.getY() * 0.85, m_stick.getRawAxis(4) * 0.85);
+    m_robotDrive.arcadeDrive(m_stick.getRightX() * 0.85, -m_stick.getLeftY() * 0.85);
 
-    double leftTrigger = m_stick.getRawAxis(2);
-    double rightTrigger = m_stick.getRawAxis(3);
-    boolean buttonX = m_stick.getRawButtonPressed(3);
+    double leftTrigger = m_stick.getLeftTriggerAxis();
+    double rightTrigger = m_stick.getRightTriggerAxis();
+    boolean buttonX = m_stick.getXButton();
     SmartDashboard.putBoolean("X Button", buttonX);
-    m_climberGroup.set(rightTrigger - leftTrigger);
+    m_climberGroup.set(rightTrigger - leftTrigger); 
 
     switch (m_kickerState) {
     case WaitingToKick:
