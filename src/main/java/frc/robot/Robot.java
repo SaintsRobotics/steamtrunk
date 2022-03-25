@@ -40,14 +40,22 @@ public class Robot extends TimedRobot {
   private final WPI_TalonSRX m_bottomClimber = new WPI_TalonSRX(7);
   private final MotorControllerGroup m_climberGroup = new MotorControllerGroup(m_topClimber, m_bottomClimber);
 
-  private final DifferentialDrive  m_robotDrive = new DifferentialDrive(m_leftDriveGroup, m_rightDriveGroup);
+  private final DifferentialDrive m_robotDrive = new DifferentialDrive(m_leftDriveGroup, m_rightDriveGroup);
   private final XboxController m_stick = new XboxController(0);
+
+  private final double MULTIPLIER = 0.4;
 
   @Override
   public void teleopInit() {
 
-    m_PID.setTolerance(1);
+    m_PID.setTolerance(2);
     m_PID.setSetpoint(52);
+
+  }
+
+  @Override
+  public void robotPeriodic() {
+    SmartDashboard.putNumber("Potentiometer", m_potentiometer.get());
 
   }
 
@@ -56,37 +64,44 @@ public class Robot extends TimedRobot {
     // Drive with arcade drive.
     // That means that the Y axis drives forward
     // and backward, and the X turns left and right.
-    m_robotDrive.arcadeDrive(m_stick.getRightX() * 0.4, -m_stick.getLeftY() * 0.4);
+    if (m_stick.getLeftBumper() && m_stick.getRightBumper()) {
+      m_robotDrive.arcadeDrive(m_stick.getRightX(), -m_stick.getLeftY());
+    }
+
+    else {
+      m_robotDrive.arcadeDrive(m_stick.getRightX() * MULTIPLIER, -m_stick.getLeftY() * MULTIPLIER);
+    }
 
     double leftTrigger = m_stick.getLeftTriggerAxis();
     double rightTrigger = m_stick.getRightTriggerAxis();
     boolean buttonX = m_stick.getXButton();
     SmartDashboard.putBoolean("X Button", buttonX);
-    m_climberGroup.set(rightTrigger - leftTrigger); 
+    m_climberGroup.set(rightTrigger - leftTrigger);
 
     switch (m_kickerState) {
-    case WaitingToKick:
-      if (buttonX) {
-        m_kickerState = KickerState.Extending;
-        m_PID.setSetpoint(37);
-      }
-      break;
+      case WaitingToKick:
+        SmartDashboard.putString("Kicker state", "Waiting to kick");
+        if (buttonX) {
+          m_kickerState = KickerState.Extending;
+          m_PID.setSetpoint(38.75);
+        }
+        break;
 
-    case Extending:
-      if (m_PID.atSetpoint()) {
-        m_kickerState = KickerState.Retracting;
-        m_PID.setSetpoint(52);
-      }
-      break;
+      case Extending:
+        SmartDashboard.putString("Kicker state", "Extending");
+        if (m_PID.atSetpoint()) {
+          m_kickerState = KickerState.Retracting;
+          m_PID.setSetpoint(51.25);
+        }
+        break;
 
-    case Retracting:
-      if (m_PID.atSetpoint()) {
-        m_kickerState = KickerState.WaitingToKick;
-      }
-      break;
+      case Retracting:
+        SmartDashboard.putString("Kicker state", "Retracting");
+        if (m_PID.atSetpoint()) {
+          m_kickerState = KickerState.WaitingToKick;
+        }
+        break;
     }
-
-    SmartDashboard.putNumber("Potentiometer", m_potentiometer.get());
 
     double PIDOutput = -m_PID.calculate(m_potentiometer.get());
     SmartDashboard.putNumber("PID Output", PIDOutput);
