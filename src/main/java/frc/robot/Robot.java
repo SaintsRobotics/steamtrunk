@@ -43,7 +43,8 @@ public class Robot extends TimedRobot {
   private final DifferentialDrive m_robotDrive = new DifferentialDrive(m_leftDriveGroup, m_rightDriveGroup);
   private final XboxController m_stick = new XboxController(0);
 
-  private final double MULTIPLIER = 0.4;
+  private final double DRIVE_MULTIPLIER = 0.4;
+  private final double TURN_MULTIPLIER = 0.6;
 
   @Override
   public void teleopInit() {
@@ -69,7 +70,7 @@ public class Robot extends TimedRobot {
     }
 
     else {
-      m_robotDrive.arcadeDrive(m_stick.getRightX() * MULTIPLIER, -m_stick.getLeftY() * MULTIPLIER);
+      m_robotDrive.arcadeDrive(m_stick.getRightX() * TURN_MULTIPLIER, -m_stick.getLeftY() * DRIVE_MULTIPLIER);
     }
 
     double leftTrigger = m_stick.getLeftTriggerAxis();
